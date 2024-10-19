@@ -1,6 +1,4 @@
-import 'dart:convert';
-
-import 'package:flutter/material.dart';
+import 'dart:convert';import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ProductDetailScreen extends StatefulWidget {
@@ -18,7 +16,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     List<String>? cartItems = prefs.getStringList('cart') ?? [];
     cartItems.add(json.encode(product));
     await prefs.setStringList('cart', cartItems);
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Added to cart')));
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Added to cart')));
   }
 
   @override
@@ -29,21 +27,21 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         title: Text(product['title']),
       ),
       body: Padding(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Image.network(product['image'], height: 200, fit: BoxFit.cover),
-            SizedBox(height: 16.0),
-            Text(product['title'], style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            SizedBox(height: 16.0),
-            Text('\$${product['price']}', style: TextStyle(fontSize: 18)),
-            SizedBox(height: 16.0),
+            const SizedBox(height: 16.0),
+            Text(product['title'], style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 16.0),
+            Text('\$${product['price']}', style: const TextStyle(fontSize: 18)),
+            const SizedBox(height: 16.0),
             Text(product['description']),
-            Spacer(),
+            const Spacer(),
             ElevatedButton(
               onPressed: () => addToCart(product),
-              child: Text('Add to Cart'),
+              child: const Text('Add to Cart'),
             ),
           ],
         ),

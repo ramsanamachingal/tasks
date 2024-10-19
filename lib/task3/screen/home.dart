@@ -3,6 +3,8 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:product/task3/screen/cart.dart';
 import 'package:product/task3/screen/product.dart';
+import 'package:product/task3/screen/wish.dart';
+// import 'package:product/task3/screen/wishlist.dart'; // Import your wishlist screen
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -12,11 +14,12 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   List products = [];
   List filteredProducts = [];
+  List<int> wishlist = []; // List to hold the indices of products in the wishlist
   String searchQuery = '';
   String selectedCategory = 'All';
+  String selectedPriceOrder = 'All'; // Correct variable for price sorting
   List<String> categories = ['All', 'electronics', 'jewelery', 'men\'s clothing', 'women\'s clothing'];
-  
-  // get http => null;
+  List<String> prices = ['All', 'High to Low', 'Low to High'];
 
   @override
   void initState() {
@@ -45,7 +48,36 @@ class _HomeScreenState extends State<HomeScreen> {
         final matchesSearch = searchQuery.isEmpty || productTitle.contains(searchQuery.toLowerCase());
         return isInCategory && matchesSearch;
       }).toList();
+
+      // Apply price sorting after filtering
+      filterProductsPrice();
     });
+  }
+
+  void filterProductsPrice() {
+    setState(() {
+      if (selectedPriceOrder == 'High to Low') {
+        filteredProducts.sort((a, b) => b['price'].compareTo(a['price']));
+      } else if (selectedPriceOrder == 'Low to High') {
+        filteredProducts.sort((a, b) => a['price'].compareTo(b['price']));
+      }
+    });
+  }
+
+  // Function to toggle wishlist status
+  void toggleWishlist(int productId) {
+    setState(() {
+      if (wishlist.contains(productId)) {
+        wishlist.remove(productId);
+      } else {
+        wishlist.add(productId);
+      }
+    });
+  }
+
+ 
+  bool isInWishlist(int productId) {
+    return wishlist.contains(productId);
   }
 
   @override
@@ -58,6 +90,12 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: Icon(Icons.shopping_cart),
             onPressed: () {
               Navigator.push(context, MaterialPageRoute(builder: (context) => CartScreen()));
+            },
+          ),
+          IconButton(
+            icon: Icon(Icons.favorite),
+            onPressed: () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => WishlistScreen(wishlist: wishlist, products: products)));
             },
           )
         ],
@@ -76,23 +114,45 @@ class _HomeScreenState extends State<HomeScreen> {
               },
             ),
           ),
-          Padding(
-            padding: EdgeInsets.all(8.0),
-            child: DropdownButton<String>(
-              value: selectedCategory,
-              onChanged: (value) {
-                setState(() {
-                  selectedCategory = value!;
-                  filterProducts();
-                });
-              },
-              items: categories.map((category) {
-                return DropdownMenuItem<String>(
-                  value: category,
-                  child: Text(category),
-                );
-              }).toList(),
-            ),
+          Row(
+            children: [
+              Padding(
+                padding: EdgeInsets.all(8.0),
+                child: DropdownButton<String>(
+                  value: selectedCategory,
+                  onChanged: (value) {
+                    setState(() {
+                      selectedCategory = value!;
+                      filterProducts();
+                    });
+                  },
+                  items: categories.map((category) {
+                    return DropdownMenuItem<String>(
+                      value: category,
+                      child: Text(category),
+                    );
+                  }).toList(),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.all(8.0),
+                child: DropdownButton<String>(
+                  value: selectedPriceOrder, // Use the correct variable here
+                  onChanged: (value) {
+                    setState(() {
+                      selectedPriceOrder = value!;
+                      filterProductsPrice(); // Filter products by price
+                    });
+                  },
+                  items: prices.map((price) {
+                    return DropdownMenuItem<String>(
+                      value: price,
+                      child: Text(price),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ],
           ),
           Expanded(
             child: GridView.builder(
@@ -103,6 +163,8 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               itemBuilder: (context, index) {
                 final product = filteredProducts[index];
+                final isFavorite = isInWishlist(product['id']); // Check if the product is in the wishlist
+
                 return GestureDetector(
                   onTap: () {
                     Navigator.push(
@@ -122,6 +184,15 @@ class _HomeScreenState extends State<HomeScreen> {
                         Padding(
                           padding: EdgeInsets.all(8.0),
                           child: Text('\$${product['price']}', style: TextStyle(fontWeight: FontWeight.bold)),
+                        ),
+                        IconButton(
+                          icon: Icon(
+                            isFavorite ? Icons.favorite : Icons.favorite_border,
+                            color: isFavorite ? Colors.red : null,
+                          ),
+                          onPressed: () {
+                            toggleWishlist(product['id']); // Toggle wishlist status
+                          },
                         ),
                       ],
                     ),
